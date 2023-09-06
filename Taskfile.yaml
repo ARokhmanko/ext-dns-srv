@@ -1,0 +1,40 @@
+
+version: '3'
+# add default variables here
+
+env:
+  DOCKER_IMAGE: "docker-base.north.io/devops/ext-dns-srv:v0.0.1"
+
+tasks:
+  docker:build:
+    desc: "build docker image"
+    summary: |
+      SYNOPSIS:
+          task {{.TASK}} -- <image:tag>
+
+      ARGS:
+          <image:tag>         docker image name and tag (default is {{.DOCKER_IMAGE}})
+    preconditions:
+      - sh: "command -v docker &> /dev/null"
+        msg: "docker is not installed, exiting."
+    deps:
+      - internal:executable
+    cmds:
+    # build docker image with tag {{.CLI_ARGS}} or default variable
+      - docker build --build-arg DOCKER_BASE_IMAGE=docker-base.north.io/devops/alpine-curl-jq:v1.0.0 -t '{{default .DOCKER_IMAGE  .CLI_ARGS}}' .
+
+  docker:push:
+    desc: "Upload all docker images with all tags from local host to Registry"
+    summary: |
+      SYNOPSIS:
+          task {{.TASK}} -- <image:tag>
+
+      ARGS:
+          <image:tag>         docker image name and tag (default is {{.DOCKER_IMAGE}})
+    cmds:
+      - docker push '{{default .DOCKER_IMAGE  .CLI_ARGS}}'
+
+  internal:executable:
+    internal: true
+    cmds:
+      - chmod +x ./dns-*.sh
